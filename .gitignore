@@ -24,7 +24,8 @@ hs_err_pid*
 replay_pid*
 
 # ignore .idea folder
-/.idea
+/Simple-SignUp-SignIn-Client/.idea
+/Simple-SignUp-SignIn-Server/.idea
 
 # ignore .iml files
 *.iml
