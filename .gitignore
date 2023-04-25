@@ -25,3 +25,6 @@ replay_pid*
 
 # ignore .idea folder
 /.idea
+
+# ignore .iml files
+*.iml
