@@ -83,7 +83,7 @@ public class SimpleSignUpSignInServer {
         SocketChannel socketChannel = serverSocketChannel.accept();
 
         // print log info
-        System.out.println("[" + (new Date()).toString() + "] " + socketChannel.getRemoteAddress() + "connected to the server.");
+        System.out.println("[" + (new Date()).toString() + "] " + socketChannel.getRemoteAddress() + " connected to the server.");
 
         socketChannel.configureBlocking(false);
         socketChannel.register(selector, SelectionKey.OP_READ | SelectionKey.OP_WRITE);
@@ -129,8 +129,8 @@ public class SimpleSignUpSignInServer {
         while (true) {
             // in read mode now
             // read the msg header
-            byte[] header = new byte[8];
-            if (buffer.remaining() >= 8) {
+            byte[] header = new byte[FieldLength.header];
+            if (buffer.remaining() >= FieldLength.header) {
                 buffer.get(header);
             }
             else {
@@ -141,21 +141,21 @@ public class SimpleSignUpSignInServer {
             }
 
             // parse the msg header
-            int totalLength = ByteBuffer.wrap(header, 0, 4).getInt();
-            int commandID = ByteBuffer.wrap(header, 4, 4).getInt();
+            int totalLength = ByteBuffer.wrap(header, 0, FieldLength.totalLengthField).getInt();
+            int commandID = ByteBuffer.wrap(header, FieldLength.totalLengthField, FieldLength.commandIDField).getInt();
 
             // test whether the msg body is complete
-            if (buffer.remaining() < totalLength - 8) {
+            if (buffer.remaining() < totalLength - FieldLength.header) {
                 // body is not complete
                 // put header back to the buffer
-                buffer.position(buffer.position() - 8);
+                buffer.position(buffer.position() - FieldLength.header);
                 // switch to the write mode
                 buffer.compact();
                 return;
             }
 
             // read the msg body
-            byte[] body = new byte[totalLength - 8];
+            byte[] body = new byte[totalLength - FieldLength.header];
             buffer.get(body);
 
             // initialize an output buffer
@@ -195,6 +195,8 @@ public class SimpleSignUpSignInServer {
                         FileWriter writer = new FileWriter("pwd.txt", true);
                         writer.write(line + '\n');
                         writer.close();
+                        // add the user pwd info to the memory for realtime purpose
+                        userPasswordDictionary.put(userName, new PasswordEntry(sha256, salt));
 
                         // encapsulate the msg body to a byte array
                         status = "1";
@@ -304,6 +306,7 @@ public class SimpleSignUpSignInServer {
     }
 
     private void launch() throws IOException, NoSuchAlgorithmException {
+        System.out.println("[" + new Date() + "] " + "Server started successfully on the port " + portNumber);
         while (true) {
             selector.select();
             Set<SelectionKey> selectionKeySet = selector.selectedKeys();

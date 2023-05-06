@@ -29,3 +29,6 @@ replay_pid*
 
 # ignore .iml files
 *.iml
+
+# ignore the password file
+pwd.txt
